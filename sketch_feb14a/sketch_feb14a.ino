@@ -1,8 +1,6 @@
-// WiFi Credentials
 const char* ssid = "OPPO A74";
 const char* password = "11111111";
 
-// device names (change names as per requirement)
 String Device_1_Name = "1 Light";
 String Device_2_Name = "2 Light";
 String Device_3_Name = "3 Light";
@@ -16,7 +14,6 @@ String Device_4_Name = "4 Light";
 Espalexa espalexa;
 Preferences pref;
 
-// define the GPIO connected with Relays and switches
 #define RelayPin1 23  
 #define RelayPin2 22  
 #define RelayPin3 19  
@@ -24,17 +21,14 @@ Preferences pref;
 
 
 
-#define wifiLed   2   //D2
+#define wifiLed   2
+
+bool toggleState_1 = LOW;
+bool toggleState_2 = LOW;
+bool toggleState_3 = LOW;
+bool toggleState_4 = LOW;
 
 
-// Relay State
-bool toggleState_1 = LOW; //Define integer to remember the toggle state for relay 1
-bool toggleState_2 = LOW; //Define integer to remember the toggle state for relay 2
-bool toggleState_3 = LOW; //Define integer to remember the toggle state for relay 3
-bool toggleState_4 = LOW; //Define integer to remember the toggle state for relay 4
-
-
-// prototypes
 boolean connectWifi();
 
 //callback functions
@@ -46,8 +40,6 @@ void fourthLightChanged(uint8_t brightness);
 
 boolean wifiConnected = false;
 
-//our callback functions
-//our callback functions
 void firstLightChanged(uint8_t brightness)
 {
   //Control the device
@@ -122,8 +114,8 @@ void fourthLightChanged(uint8_t brightness)
 
 
 void addDevices(){
-  // Define your devices here.
-  espalexa.addDevice(Device_1_Name, firstLightChanged); //simplest definition, default state off
+  //devices
+  espalexa.addDevice(Device_1_Name, firstLightChanged);
   espalexa.addDevice(Device_2_Name, secondLightChanged);
   espalexa.addDevice(Device_3_Name, thirdLightChanged);
   espalexa.addDevice(Device_4_Name, fourthLightChanged);
@@ -133,9 +125,9 @@ void addDevices(){
 }
 
 void sendFeedback(int relay, int value){
-  EspalexaDevice* d = espalexa.getDevice(relay); //the index is zero-based
+  EspalexaDevice* d = espalexa.getDevice(relay); 
   if(relay == 4){
-    d->setPercent(map(value, 0, 4, 0, 100)); //set value "brightness" in percent
+    d->setPercent(map(value, 0, 4, 0, 100)); 
   }
   else{
     d->setPercent(value);
@@ -157,7 +149,6 @@ void all_SwitchOff(){
   toggleState_4 = 0; digitalWrite(RelayPin4, LOW); pref.putBool("Relay4", toggleState_4); sendFeedback(3, 0); delay(100);
 }
 
-// connect to wifi – returns true if successful or false if not
 boolean connectWifi()
 {
   boolean state = true;
@@ -193,7 +184,6 @@ boolean connectWifi()
 
 void getRelayState()
 {
-  //Serial.println("reading data from NVS");
   toggleState_1 = pref.getBool("Relay1", 0);
   digitalWrite(RelayPin1, toggleState_1); 
   (toggleState_1 == false) ? sendFeedback(0, 0) : sendFeedback(0, 100);
@@ -215,7 +205,6 @@ void getRelayState()
 void setup()
 {
   Serial.begin(115200);
-  //Open namespace in read-write mode
   pref.begin("Relay_State", false);
   
   Serial.println("The device started, now you can pair it with bluetooth!");
@@ -228,8 +217,6 @@ void setup()
 
   pinMode(wifiLed, OUTPUT);
 
-
-  //During Starting all Relays should TURN OFF
   digitalWrite(RelayPin1, toggleState_1);
   digitalWrite(RelayPin2, toggleState_2);
   digitalWrite(RelayPin3, toggleState_3);
@@ -237,8 +224,6 @@ void setup()
 
   digitalWrite(wifiLed, LOW);
 
-
-  // Initialise wifi connection
   wifiConnected = connectWifi();
 
   if (wifiConnected)
@@ -258,20 +243,18 @@ void loop()
 {  
   if (WiFi.status() != WL_CONNECTED)
   {
-    //Serial.print("WiFi Not Connected ");
-    digitalWrite(wifiLed, LOW); //Turn off WiFi LED
+    digitalWrite(wifiLed, LOW);
   }
   else
   {
-    //Serial.print("WiFi Connected  ");
     digitalWrite(wifiLed, HIGH);
-    //WiFi Control
+
     if (wifiConnected){
       espalexa.loop();
       delay(1);
     }
     else {
-      wifiConnected = connectWifi(); // Initialise wifi connection
+      wifiConnected = connectWifi();
       if(wifiConnected){
       addDevices();
       
